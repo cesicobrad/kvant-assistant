@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "category": "simple",
+    "question": "What is the Phase 1 budget for the NLB Document Intelligence project?",
+    "expected": "€48,000"
+  },
+  {
+    "id": 2,
+    "category": "simple",
+    "question": "Who is the project lead for the Krka regulatory submission RAG proposal?",
+    "expected": "Anja Štrukelj"
+  },
+  {
+    "id": 3,
+    "category": "simple",
+    "question": "What was the faithfulness score in the Mercator Polica RAGAS evaluation?",
+    "expected": "0.81"
+  },
+  {
+    "id": 4,
+    "category": "simple",
+    "question": "What was the duration and cost of the NLB production outage in September 2024?",
+    "expected": "6 hours and 14 minutes; the Qdrant process crashed due to an out-of-memory error during a reindex job"
+  },
+  {
+    "id": 5,
+    "category": "simple",
+    "question": "Why did the Outfit7 HR assistant project stall?",
+    "expected": "Their parent company required a 3-4 month security review for any third-party software processing employee data, which Outfit7's internal HR lead had not known about when initiating the engagement."
+  },
+  {
+    "id": 6,
+    "category": "simple",
+    "question": "What vector database did Kvant conclude should be the default for production client deployments, and why?",
+    "expected": "Qdrant, because it had the best retrieval quality (context precision 0.76), lowest latency, richest metadata filtering, and a snapshot API for backups."
+  },
+  {
+    "id": 7,
+    "category": "simple",
+    "question": "What caused the retrieval quality degradation on Mercator Polica in October 2024?",
+    "expected": "Upgrading Qdrant from 1.6.1 to 1.10.0 changed the default HNSW m parameter from 16 to 8 for newly created collections, degrading context precision from 0.69 to 0.54."
+  },
+  {
+    "id": 8,
+    "category": "multi_hop",
+    "question": "Which Kvant client projects use Qdrant hosted on Hetzner infrastructure?",
+    "expected": "NLB (Hetzner Falkenstein FSN1), Krka RAG (Hetzner CCX33 32GB), and Mercator Polica (Hetzner FSN1) all use Qdrant on Hetzner."
+  },
+  {
+    "id": 9,
+    "category": "multi_hop",
+    "question": "What hallucination incident occurred during a client demo, and what were the two root causes?",
+    "expected": "During the Krka RAG demo in March 2024, the system fabricated a specific shelf-life figure (36 months) not present in any retrieved document and invented a section citation (ICH Q1A(R2) Section 4.1). Root causes: no confidence-to-hedging mapping was implemented, and the model was instructed to be specific about sources without being able to verify section numbers."
+  },
+  {
+    "id": 10,
+    "category": "multi_hop",
+    "question": "What is Kvant's break-even query volume for self-hosting Llama 3.1 70B on Hetzner versus using GPT-4o via API, and what are the caveats?",
+    "expected": "Approximately 7,800 queries/day. Caveats: does not include ~0.5 FTE engineer time for model management, and Llama 3.1 70B is meaningfully worse than GPT-4o on complex reasoning and Slovenian-language tasks."
+  },
+  {
+    "id": 11,
+    "category": "multi_hop",
+    "question": "Which reranker did Kvant recommend as the default for new RAG deployments, and what precision improvement did it achieve on the Krka corpus?",
+    "expected": "BGE Reranker v2-m3 (self-hosted on CPU). It improved context precision from 0.76 to 0.81 on the Krka 80-question golden dataset, and also corrected a retrieval bias where the embedding model surfaced English chunks over more relevant Slovenian ones."
+  },
+  {
+    "id": 12,
+    "category": "contradiction",
+    "question": "What LLM does the Mercator Polica system use?",
+    "expected": "The original spec called for GPT-4o, but it was downgraded to GPT-4o-mini in week 6 of development at Mercator's request due to API cost concerns. The deployed system uses GPT-4o-mini. A correct answer flags both or specifically identifies GPT-4o-mini as the deployed model."
+  },
+  {
+    "id": 13,
+    "category": "contradiction",
+    "question": "What is the total proposed budget for the NLB Phase 1 knowledge base project?",
+    "expected": "There is a contradiction in the corpus: the kickoff meeting notes and executive summary cite €48,000, but the detailed budget breakdown in the proposal totals €53,400 (the delta is explained by SSO integration and SFTP coordination added after the March 25 meeting). A good answer flags both figures."
+  },
+  {
+    "id": 14,
+    "category": "unanswerable",
+    "question": "What is the street address of Kvant Consulting's main office?",
+    "expected": "I don't know based on the internal documents"
+  },
+  {
+    "id": 15,
+    "category": "unanswerable",
+    "question": "What was Kvant Consulting's total revenue in fiscal year 2024?",
+    "expected": "I don't know based on the internal documents"
+  }
+]

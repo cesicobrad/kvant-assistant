@@ -1,0 +1,228 @@
+[
+  {
+    "id": 1,
+    "category": "simple",
+    "question": "What is the Phase 1 budget for the NLB Document Intelligence project?",
+    "expected": "€48,000",
+    "actual": " According to Source 3, the proposed budget for Phase 1 of the NLB Document Intelligence project is €48,000 (Source 3). However, in Source 5, a standalone proposal discusses a document classification system that can be delivered in parallel with the Phase 1 RAG work. The proposed budget for this additional phase is €22,500 (Source 4). Therefore, there appears to be a contradiction between these sources regarding the total budget for Phase 1 of the NLB Document Intelligence project.",
+    "sources_used": [
+      "doc_009.json",
+      "doc_007.json",
+      "doc_010.md",
+      "doc_005.pdf",
+      "doc_002.pdf"
+    ],
+    "correct": true,
+    "reasoning": "The answer correctly identifies the proposed budget for Phase 1 of the NLB Document Intelligence project as €48,000, though it also mentions a contradictory value from another source. However, the main fact from the expected answer is presented in the actual answer."
+  },
+  {
+    "id": 2,
+    "category": "simple",
+    "question": "Who is the project lead for the Krka regulatory submission RAG proposal?",
+    "expected": "Anja Štrukelj",
+    "actual": " According to Source 1, the project leads for the Krka regulatory submission RAG proposal are Anja Štrukelj and Žiga Potočnik (anja@kvant.si), Žiga Potočnik (ziga@kvant.si).",
+    "sources_used": [
+      "doc_009.json",
+      "doc_007.json",
+      "doc_002.pdf",
+      "doc_027.md"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer mentions both project leads specified in the question."
+  },
+  {
+    "id": 3,
+    "category": "simple",
+    "question": "What was the faithfulness score in the Mercator Polica RAGAS evaluation?",
+    "expected": "0.81",
+    "actual": " According to the provided context, there is no information about the faithfulness score in the Mercator Polica RAGAS evaluation.",
+    "sources_used": [
+      "doc_020.md",
+      "doc_006.pdf",
+      "doc_015.md",
+      "doc_025.md",
+      "doc_016.md"
+    ],
+    "correct": true,
+    "reasoning": "The provided context does not contain information about the faithfulness score in the Mercator Polica RAGAS evaluation."
+  },
+  {
+    "id": 4,
+    "category": "simple",
+    "question": "What was the duration and cost of the NLB production outage in September 2024?",
+    "expected": "6 hours and 14 minutes; the Qdrant process crashed due to an out-of-memory error during a reindex job",
+    "actual": " I don't know based on the internal documents about the cost of the NLB production outage in September 2024. However, the documents do provide information about the duration which was 6 hours and 14 minutes (Source 1).",
+    "sources_used": [
+      "doc_007.json",
+      "doc_005.pdf",
+      "doc_014.md",
+      "doc_018.md"
+    ],
+    "correct": true,
+    "reasoning": "The answer correctly identifies the duration of the outage."
+  },
+  {
+    "id": 5,
+    "category": "simple",
+    "question": "Why did the Outfit7 HR assistant project stall?",
+    "expected": "Their parent company required a 3-4 month security review for any third-party software processing employee data, which Outfit7's internal HR lead had not known about when initiating the engagement.",
+    "actual": " According to Source 1, the Outfit7 HR assistant project stalled due to unspecified reasons that were documented as a post-mortem note by Tine Hribar on November 28, 2023. No specific cause for the stalling was provided in the context.\n\nHowever, it's worth noting that Source 2 suggests that if an automated evaluation in production (RAGAS eval run on a fixed 45-question set) had been implemented, it could have potentially prevented issues during the project. But since it wasn't implemented yet, we cannot definitively say that this would have caused the stalling of the project.\n\nAdditionally, Source 3 and Source 4 discuss infrastructure problems that Iskratel's AI teams are experiencing, which may have an impact on various projects, including the Outfit7 HR assistant project. However, it is not explicitly stated in the context whether these issues directly caused the stalling of the Outfit7 project.\n\nIn conclusion, while there might be some indirect factors that could have contributed to the stalling of the Outfit7 HR assistant project, based on the provided context, we cannot determine a specific cause for the project's stall.\n\nI don't know based on the internal documents if the Outfit7 HR assistant project was directly affected by the issues discussed in Source 3 and Source 4.",
+    "sources_used": [
+      "doc_027.md",
+      "doc_013.md",
+      "doc_016.md",
+      "doc_004.pdf",
+      "doc_014.md"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer does not provide a specific cause for the stalling of the Outfit7 HR assistant project, which aligns with the expected answer."
+  },
+  {
+    "id": 6,
+    "category": "simple",
+    "question": "What vector database did Kvant conclude should be the default for production client deployments, and why?",
+    "expected": "Qdrant, because it had the best retrieval quality (context precision 0.76), lowest latency, richest metadata filtering, and a snapshot API for backups.",
+    "actual": " According to Source 2, the recommended vector database for production, new infrastructure is Qdrant. The reason is that it wins on retrieval quality, latency, metadata filtering expressiveness, and the snapshot API (doc_017.md, chunk 6).",
+    "sources_used": [
+      "doc_013.md",
+      "doc_012.md",
+      "doc_017.md"
+    ],
+    "correct": true,
+    "reasoning": "The answer correctly identifies Qdrant as the recommended vector database for production client deployments and provides a reason based on its performance characteristics."
+  },
+  {
+    "id": 7,
+    "category": "simple",
+    "question": "What caused the retrieval quality degradation on Mercator Polica in October 2024?",
+    "expected": "Upgrading Qdrant from 1.6.1 to 1.10.0 changed the default HNSW m parameter from 16 to 8 for newly created collections, degrading context precision from 0.69 to 0.54.",
+    "actual": " According to Source 1, the retrieval quality degradation on Mercator Polica in October 2024 was caused by the upgrade from Qdrant 1.6.1 to 1.10.0, which introduced a silent change in default HNSW indexing parameters that degraded retrieval quality on the Mercator corpus.",
+    "sources_used": [
+      "doc_003.pdf",
+      "doc_016.md",
+      "doc_021.md",
+      "doc_006.pdf"
+    ],
+    "correct": true,
+    "reasoning": "The answer correctly identifies the cause of retrieval quality degradation and provides additional context from Source 1"
+  },
+  {
+    "id": 8,
+    "category": "multi_hop",
+    "question": "Which Kvant client projects use Qdrant hosted on Hetzner infrastructure?",
+    "expected": "NLB (Hetzner Falkenstein FSN1), Krka RAG (Hetzner CCX33 32GB), and Mercator Polica (Hetzner FSN1) all use Qdrant on Hetzner.",
+    "actual": " I don't know based on the internal documents.",
+    "sources_used": [
+      "doc_013.md",
+      "doc_017.md",
+      "doc_018.md"
+    ],
+    "correct": true,
+    "reasoning": "The response correctly identifies that NLB, Krka RAG, and Mercator Polica use Qdrant on Hetzner infrastructure, even though it is incomplete compared to the expected answer."
+  },
+  {
+    "id": 9,
+    "category": "multi_hop",
+    "question": "What hallucination incident occurred during a client demo, and what were the two root causes?",
+    "expected": "During the Krka RAG demo in March 2024, the system fabricated a specific shelf-life figure (36 months) not present in any retrieved document and invented a section citation (ICH Q1A(R2) Section 4.1). Root causes: no confidence-to-hedging mapping was implemented, and the model was instructed to be specific about sources without being able to verify section numbers.",
+    "actual": " The hallucination incident occurred during a client demo with Krka Regulatory Affairs on March 14, 2024 (Source 2). The two root causes of this incident were:\n\n1. No confidence-to-hedging mapping: High-confidence retrieval led to an assertive answer; lower-confidence retrieval resulted in a hedged or refused response. This was specified but not implemented (Source 5).\n2. Section-level citation not implemented: The model invented a section number because it was instructed to be specific about sources and had no ground truth to cite correctly. We gave it an incentive to confabulate (Source 5).",
+    "sources_used": [
+      "doc_015.md",
+      "doc_030.md",
+      "doc_001.pdf",
+      "doc_020.md"
+    ],
+    "correct": true,
+    "reasoning": "The answer provides detailed and accurate information about the incident and its root causes, demonstrating a thorough understanding of the situation."
+  },
+  {
+    "id": 10,
+    "category": "multi_hop",
+    "question": "What is Kvant's break-even query volume for self-hosting Llama 3.1 70B on Hetzner versus using GPT-4o via API, and what are the caveats?",
+    "expected": "Approximately 7,800 queries/day. Caveats: does not include ~0.5 FTE engineer time for model management, and Llama 3.1 70B is meaningfully worse than GPT-4o on complex reasoning and Slovenian-language tasks.",
+    "actual": " The break-even query volume for self-hosting Llama 3.1 70B on Hetzner compared to using GPT-4o via API is approximately 7,800 queries/day (Source 2). However, there are some caveats:\n\n1. Engineer time for model management, updates, and incident response is not included in the calculation, but it requires approximately 0.5 FTE ongoing (Source 1).\n2. Llama 3.1 70B is meaningfully worse than GPT-4o on complex reasoning and Slovenian-language tasks in Kvant's testing (Source 1).\n3. Latency for self-hosted Llama 3.1 70B throughput depends on batch size and request patterns, making it not directly comparable to API latency (Source 1).\n\nRegarding GPT-4o-mini, it is adequate for simple retrieval and classification tasks but is not recommended for primary generation on multi-hop or analytical questions due to noticeable quality trade-offs when used in such scenarios (Source 2).",
+    "sources_used": [
+      "doc_010.md",
+      "doc_003.pdf",
+      "doc_011.md",
+      "doc_018.md"
+    ],
+    "correct": true,
+    "reasoning": "The response correctly calculates the break-even query volume and mentions the caveats"
+  },
+  {
+    "id": 11,
+    "category": "multi_hop",
+    "question": "Which reranker did Kvant recommend as the default for new RAG deployments, and what precision improvement did it achieve on the Krka corpus?",
+    "expected": "BGE Reranker v2-m3 (self-hosted on CPU). It improved context precision from 0.76 to 0.81 on the Krka 80-question golden dataset, and also corrected a retrieval bias where the embedding model surfaced English chunks over more relevant Slovenian ones.",
+    "actual": " According to Source 2, the recommended reranker is BGE Reranker v2-m3. The precision improvement achieved on the Krka corpus was from 0.76 to 0.81.",
+    "sources_used": [
+      "doc_019.md",
+      "doc_013.md",
+      "doc_027.md",
+      "doc_017.md"
+    ],
+    "correct": true,
+    "reasoning": "The answer correctly identifies the recommended reranker and the precision improvement on Krka corpus."
+  },
+  {
+    "id": 12,
+    "category": "contradiction",
+    "question": "What LLM does the Mercator Polica system use?",
+    "expected": "The original spec called for GPT-4o, but it was downgraded to GPT-4o-mini in week 6 of development at Mercator's request due to API cost concerns. The deployed system uses GPT-4o-mini. A correct answer flags both or specifically identifies GPT-4o-mini as the deployed model.",
+    "actual": " I don't know based on the internal documents if the Mercator Polica system uses any specific Language Model (LLM) other than Claude Haiku, as that is the only LLM mentioned in the provided context. However, it is noted that a chatbot for Mercator's customer support might use Claude Haiku for generation (Source 5).",
+    "sources_used": [
+      "doc_016.md",
+      "doc_003.pdf",
+      "doc_006.pdf"
+    ],
+    "correct": false,
+    "reasoning": "The actual answer mentions Claude Haiku instead of GPT-4o-mini, which is the contradiction."
+  },
+  {
+    "id": 13,
+    "category": "contradiction",
+    "question": "What is the total proposed budget for the NLB Phase 1 knowledge base project?",
+    "expected": "There is a contradiction in the corpus: the kickoff meeting notes and executive summary cite €48,000, but the detailed budget breakdown in the proposal totals €53,400 (the delta is explained by SSO integration and SFTP coordination added after the March 25 meeting). A good answer flags both figures.",
+    "actual": " According to Source 2, the proposed budget for Phase 1 of the NLB project is €48,000. (Source 2)",
+    "sources_used": [
+      "doc_007.json",
+      "doc_026.md",
+      "doc_010.md",
+      "doc_013.md",
+      "doc_002.pdf"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer mentions both values, citing €48,000 from Source 2 and explaining the discrepancy with the additional costs. Therefore, it correctly identifies the contradiction."
+  },
+  {
+    "id": 14,
+    "category": "unanswerable",
+    "question": "What is the street address of Kvant Consulting's main office?",
+    "expected": "I don't know based on the internal documents",
+    "actual": " I don't know based on the provided context.",
+    "sources_used": [
+      "doc_009.json",
+      "doc_001.pdf",
+      "doc_002.pdf",
+      "doc_027.md"
+    ],
+    "correct": true,
+    "reasoning": "The provided answer correctly acknowledges that it doesn't know the street address based on the given context."
+  },
+  {
+    "id": 15,
+    "category": "unanswerable",
+    "question": "What was Kvant Consulting's total revenue in fiscal year 2024?",
+    "expected": "I don't know based on the internal documents",
+    "actual": " I don't know based on the internal documents.",
+    "sources_used": [
+      "doc_009.json",
+      "doc_005.pdf",
+      "doc_002.pdf",
+      "doc_027.md"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer correctly states that it doesn't know based on the internal documents, which matches the expected answer."
+  }
+]

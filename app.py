@@ -2,102 +2,89 @@ import sys
 import warnings
 warnings.filterwarnings("ignore")
 
-# Try to use the most up-to-date imports, but fall back if needed
 try:
     from langchain_huggingface import HuggingFaceEmbeddings
-    from langchain_community.vectorstores import Qdrant
+    from langchain_qdrant import QdrantVectorStore as Qdrant
     from qdrant_client import QdrantClient
-    # Try the newer Ollama import first
     try:
         from langchain_ollama import OllamaLLM as Ollama
     except ImportError:
         from langchain_community.llms import Ollama
     from langchain_core.prompts import ChatPromptTemplate
 except ImportError as e:
-    print(f"\n[!] Missing a required package: {e}")
-    print("[!] To fix this, run: pip install langchain langchain-core langchain-huggingface qdrant-client")
+    print(f"[!] Missing package: {e}")
     sys.exit(1)
 
-def main():
-    print("Loading your Kvant AI Assistant...")
+COLLECTION_NAME = "kvant_knowledge_base"
+EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+LLM_MODEL = "mistral"
+TOP_K = 5
 
-    # 1. Load the same free local embeddings you used for ingestion
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-    )
+SYSTEM_PROMPT = """You are an internal AI assistant for Kvant Consulting. Answer ONLY using the provided context below.
 
-    # 2. Connect to the Qdrant database we built earlier
-    try:
-        client = QdrantClient(path="./local_qdrant")
-        vector_store = Qdrant(
-            client=client,
-            collection_name="kvant_knowledge_base",
-            embeddings=embeddings
-        )
-    except Exception as e:
-        print(f"Error: Could not connect to the database. {e}")
-        print("Did you run ingest.py first?")
-        return
+STRICT RULES:
+1. If the information is not explicitly stated in the context, you MUST respond with exactly: "I don't know based on the internal documents."
+2. Never guess, infer, or use outside knowledge. Only state what is directly in the context.
+3. Cite the source number for each fact (e.g. "According to Source 2, ...").
+4. If sources contradict each other, present both views and flag the contradiction.
+5. Be concise.
 
-    # 3. Set up the FREE local LLM using Ollama
-    # Ensure Ollama is running and you have run 'ollama run llama3.2'
-    llm = Ollama(model="llama3.2")
+Context:
+{context}"""
 
-    # 4. Give the AI its personality and rules (Prompt Engineering!)
-    system_prompt = (
-        "You are an internal AI assistant for Kvant Consulting. "
-        "Use the provided context from internal documents to answer the user's question. "
-        "If the answer is not in the context, explicitly say 'I don't know based on the internal documents.' "
-        "Always respond professionally. "
-        "\n\nContext:\n{context}"
-    )
+def build_rag():
+    embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
+    client = QdrantClient(path="./local_qdrant")
+    vector_store = Qdrant(client=client, collection_name=COLLECTION_NAME, embedding=embeddings)
+    llm = Ollama(model=LLM_MODEL)
     prompt = ChatPromptTemplate.from_messages([
-        ("system", system_prompt),
+        ("system", SYSTEM_PROMPT),
         ("human", "{input}"),
     ])
+    return vector_store, llm, prompt
 
-    print("\n======================================")
-    print(" === KVANT CONSULTING AI ASSISTANT ===")
-    print("======================================")
+def answer_question(question, vector_store, llm, prompt, k=TOP_K, verbose=True):
+    docs = vector_store.similarity_search(question, k=k)
+    context_text = ""
+    for i, doc in enumerate(docs):
+        src = doc.metadata.get("source", "?")
+        chunk_idx = doc.metadata.get("chunk_index", "?")
+        context_text += f"-- Source {i+1} [{src}, chunk {chunk_idx}] --\n{doc.page_content}\n\n"
+    formatted = prompt.format(context=context_text, input=question)
+    answer = llm.invoke(formatted)
+    if verbose:
+        print(f"\nKvant AI: {answer}\n")
+        print("--- Sources Used ---")
+        for i, doc in enumerate(docs):
+            src = doc.metadata.get("source", "?")
+            chunk_idx = doc.metadata.get("chunk_index", "?")
+            snippet = doc.page_content[:140].replace("\n", " ")
+            print(f"  Source {i+1}: {src} (chunk {chunk_idx})")
+            print(f"    \"{snippet}...\"")
+        print("--------------------")
+    return answer, docs
+
+def main():
+    print("Loading Kvant AI Assistant...")
+    try:
+        vector_store, llm, prompt = build_rag()
+    except Exception as e:
+        print(f"Setup error: {e}\nDid you run ingest.py? Is Ollama running?")
+        return
+
+    print("\n=== KVANT CONSULTING AI ASSISTANT ===")
     print("Type 'exit' to quit.\n")
 
-    # 5. Start the chat loop
     while True:
-        user_input = input("\nYou: ")
-        if user_input.lower() in ['exit', 'quit']:
-            print("Shutting down assistant. Goodbye!")
+        user_input = input("\nYou: ").strip()
+        if user_input.lower() in ("exit", "quit", ""):
+            print("Goodbye.")
             break
-            
-        print("\nAI is thinking... (running locally on your GPU)\n")
-        
+        print("\nThinking...")
         try:
-            # RAG STEP 1: Find relevant documents using similarity_search
-            # This is safer than using retriever.invoke() or client.search() directly
-            docs = vector_store.similarity_search(user_input, k=3)
-            
-            # RAG STEP 2: Combine the text from the documents
-            context_text = ""
-            for i, doc in enumerate(docs):
-                context_text += f"-- Source {i+1} --\n{doc.page_content}\n\n"
-            
-            # RAG STEP 3: Format the prompt
-            formatted_prompt = prompt.format(context=context_text, input=user_input)
-            
-            # RAG STEP 4: Send to Ollama
-            answer = llm.invoke(formatted_prompt)
-            
-            # Print the answer
-            print(f"Kvant AI: {answer}")
-            
-            # Print the sources
-            print("\n--- Sources Used ---")
-            sources = set([doc.metadata.get('source', 'Unknown Document') for doc in docs])
-            for source in sources:
-                print(f"- {source}")
-            print("--------------------\n")
-            
+            answer_question(user_input, vector_store, llm, prompt)
         except Exception as e:
-            print(f"\nError: Could not generate response. Details: {e}")
+            print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
