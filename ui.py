@@ -99,25 +99,51 @@ h1, h2, h3 {
     margin-right: 6px;
 }
 
-.meta-line {
-    font-size: 11px;
-    color: #444;
-    font-family: 'DM Mono', monospace;
-    margin-top: 0.5rem;
+.eval-pass {
+    background: #0d1f15;
+    border: 1px solid #1a3d28;
+    border-left: 3px solid #4a9e6b;
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin: 0.5rem 0;
 }
 
-.suggested-btn {
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    border-radius: 3px;
-    padding: 8px 14px;
+.eval-fail {
+    background: #1f0d0d;
+    border: 1px solid #3d1a1a;
+    border-left: 3px solid #9e4a4a;
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin: 0.5rem 0;
+}
+
+.eval-question {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.eval-answer {
     font-size: 13px;
-    color: #888;
-    cursor: pointer;
-    margin: 4px 0;
-    text-align: left;
-    width: 100%;
-    transition: all 0.15s;
+    color: #e8e4dc;
+    line-height: 1.6;
+}
+
+.eval-score {
+    font-family: 'DM Mono', monospace;
+    font-size: 32px;
+    font-weight: 300;
+    color: #c8b88a;
+    margin: 1rem 0;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid #1f1f1f;
+    margin: 1.5rem 0;
 }
 
 .stTextInput input {
@@ -151,27 +177,18 @@ h1, h2, h3 {
     background: #d4c49a !important;
 }
 
-div[data-testid="stSpinner"] {
-    color: #666 !important;
-}
-
-.divider {
-    border: none;
-    border-top: 1px solid #1f1f1f;
-    margin: 1.5rem 0;
-}
-
-.score-bar-bg {
+.category-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-right: 8px;
     background: #1f1f1f;
-    border-radius: 2px;
-    height: 4px;
-    margin-top: 4px;
-}
-
-.score-bar-fill {
-    background: #c8b88a;
-    border-radius: 2px;
-    height: 4px;
+    color: #666;
+    border: 1px solid #2a2a2a;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -191,7 +208,6 @@ with st.sidebar:
             system_ok = True
         except Exception as e:
             st.error(f"Setup failed: {e}")
-            st.info("Make sure you've run `python ingest.py` first and Ollama is running.")
             system_ok = False
 
     st.markdown('<hr class="divider">', unsafe_allow_html=True)
@@ -209,6 +225,7 @@ with st.sidebar:
     for s in suggestions:
         if st.button(s, key=f"sug_{s[:20]}", use_container_width=True):
             st.session_state.pending_query = s
+            st.session_state.active_tab = "chat"
 
     st.markdown('<hr class="divider">', unsafe_allow_html=True)
     st.markdown('<p class="kvant-header">Corpus</p>', unsafe_allow_html=True)
@@ -223,56 +240,166 @@ with st.sidebar:
             else:
                 st.error(result.stderr[-500:])
 
-st.markdown('<p class="kvant-header">Kvant Consulting</p>', unsafe_allow_html=True)
-st.markdown('<h1 class="kvant-title">Internal knowledge assistant</h1>', unsafe_allow_html=True)
-
 if "history" not in st.session_state:
     st.session_state.history = []
 if "pending_query" not in st.session_state:
     st.session_state.pending_query = ""
+if "active_tab" not in st.session_state:
+    st.session_state.active_tab = "chat"
+if "eval_results" not in st.session_state:
+    st.session_state.eval_results = None
 
-with st.form("query_form", clear_on_submit=True):
-    col1, col2 = st.columns([5, 1])
-    with col1:
-        default_val = st.session_state.pending_query
-        query = st.text_input(
-            "question",
-            value=default_val,
-            placeholder="Ask anything about Kvant's internal documents...",
-            label_visibility="collapsed"
-        )
-    with col2:
-        submitted = st.form_submit_button("Ask →")
+tab_chat, tab_eval = st.tabs(["Chat", "Evaluation"])
 
-if submitted and query and system_ok:
-    st.session_state.pending_query = ""
-    with st.spinner("Searching..."):
+with tab_chat:
+    st.markdown('<p class="kvant-header">Kvant Consulting</p>', unsafe_allow_html=True)
+    st.markdown('<h1 class="kvant-title">Internal knowledge assistant</h1>', unsafe_allow_html=True)
+
+    with st.form("query_form", clear_on_submit=True):
+        col1, col2 = st.columns([5, 1])
+        with col1:
+            default_val = st.session_state.pending_query
+            query = st.text_input(
+                "question",
+                value=default_val,
+                placeholder="Ask anything about Kvant's internal documents...",
+                label_visibility="collapsed"
+            )
+        with col2:
+            submitted = st.form_submit_button("Ask →")
+
+    if submitted and query and system_ok:
+        st.session_state.pending_query = ""
+        with st.spinner("Searching..."):
+            from app import answer_question
+            answer, docs = answer_question(query, vector_store, llm, prompt, verbose=False)
+
+        st.session_state.history.insert(0, {
+            "query": query,
+            "answer": answer,
+            "docs": docs
+        })
+
+    if st.session_state.pending_query and not submitted:
+        st.rerun()
+
+    for i, item in enumerate(st.session_state.history):
+        st.markdown(f'<p style="font-size:13px;color:#555;font-family:\'DM Mono\',monospace;margin-bottom:0.25rem;">Q — {item["query"]}</p>', unsafe_allow_html=True)
+        st.markdown(f'<div class="answer-box">{item["answer"]}</div>', unsafe_allow_html=True)
+
+        sources_seen = set()
+        for doc in item["docs"]:
+            src = doc.metadata.get("source", "?")
+            chunk = doc.metadata.get("chunk_index", "?")
+            key = f"{src}_{chunk}"
+            if key not in sources_seen:
+                sources_seen.add(key)
+                snippet = doc.page_content[:180].replace("\n", " ").strip()
+                st.markdown(f'<span class="source-chip">{src} · chunk {chunk}</span>', unsafe_allow_html=True)
+                st.markdown(f'<p class="source-snippet">"{snippet}..."</p>', unsafe_allow_html=True)
+
+        if i < len(st.session_state.history) - 1:
+            st.markdown('<hr class="divider">', unsafe_allow_html=True)
+
+with tab_eval:
+    st.markdown('<p class="kvant-header">Kvant Consulting</p>', unsafe_allow_html=True)
+    st.markdown('<h1 class="kvant-title">Evaluation suite</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="font-size:14px;color:#555;margin-bottom:2rem;">15 questions across 4 categories. LLM-as-judge scoring.</p>', unsafe_allow_html=True)
+
+    if st.button("Run all 15 questions →", use_container_width=False):
+        import json
+        from pathlib import Path
         from app import answer_question
-        answer, docs = answer_question(query, vector_store, llm, prompt, verbose=False)
 
-    st.session_state.history.insert(0, {
-        "query": query,
-        "answer": answer,
-        "docs": docs
-    })
+        questions = json.loads(Path("eval_questions.json").read_text(encoding="utf-8"))
 
-if st.session_state.pending_query and not submitted:
-    st.rerun()
+        JUDGE_PROMPT = """You are evaluating a RAG system answer. Be generous — partial credit counts.
 
-for i, item in enumerate(st.session_state.history):
-    st.markdown(f'<p style="font-size:13px;color:#555;font-family:\'DM Mono\',monospace;margin-bottom:0.25rem;">Q — {item["query"]}</p>', unsafe_allow_html=True)
-    st.markdown(f'<div class="answer-box">{item["answer"]}</div>', unsafe_allow_html=True)
+QUESTION: {question}
+EXPECTED ANSWER: {expected}
+ACTUAL ANSWER: {actual}
+CATEGORY: {category}
 
-    sources_seen = set()
-    for doc in item["docs"]:
-        src = doc.metadata.get("source", "?")
-        chunk = doc.metadata.get("chunk_index", "?")
-        key = f"{src}_{chunk}"
-        if key not in sources_seen:
-            sources_seen.add(key)
-            snippet = doc.page_content[:180].replace("\n", " ").strip()
-            st.markdown(f'<span class="source-chip">{src} · chunk {chunk}</span>', unsafe_allow_html=True)
-            st.markdown(f'<p class="source-snippet">"{snippet}..."</p>', unsafe_allow_html=True)
+Scoring:
+- unanswerable: correct=true if the answer says it doesn't know or can't find it. correct=false if it invents facts.
+- contradiction: correct=true if it mentions both values OR correctly identifies the deployed/final value.
+- simple/multi_hop: correct=true if the answer contains the main fact from expected, even if incomplete or differently worded.
 
-    if i < len(st.session_state.history) - 1:
+Respond with ONLY this JSON on one line:
+{{"correct": true, "reasoning": "one sentence"}}
+"""
+
+        results = []
+        progress = st.progress(0)
+        status = st.empty()
+
+        for i, q in enumerate(questions):
+            status.markdown(f'<p style="font-size:12px;color:#666;font-family:\'DM Mono\',monospace;">Running Q{q["id"]} — {q["question"][:60]}...</p>', unsafe_allow_html=True)
+            progress.progress((i + 1) / len(questions))
+
+            try:
+                actual, docs = answer_question(q["question"], vector_store, llm, prompt, verbose=False)
+            except Exception as e:
+                actual = f"ERROR: {e}"
+                docs = []
+
+            judge_input = JUDGE_PROMPT.format(
+                question=q["question"],
+                expected=q["expected"],
+                actual=actual,
+                category=q["category"],
+            )
+
+            try:
+                judgment_raw = llm.invoke(judge_input)
+                import re, json as j
+                match = re.search(r'\{[^{}]*"correct"\s*:\s*(true|false)[^{}]*\}', judgment_raw, re.DOTALL)
+                if match:
+                    judgment = j.loads(match.group(0))
+                else:
+                    judgment = {"correct": False, "reasoning": judgment_raw[:120]}
+            except Exception as e:
+                judgment = {"correct": False, "reasoning": str(e)}
+
+            results.append({
+                "id": q["id"],
+                "category": q["category"],
+                "question": q["question"],
+                "actual": actual,
+                "correct": judgment.get("correct", False),
+                "reasoning": judgment.get("reasoning", ""),
+            })
+
+        status.empty()
+        progress.empty()
+        st.session_state.eval_results = results
+
+    if st.session_state.eval_results:
+        results = st.session_state.eval_results
+        correct_count = sum(r["correct"] for r in results)
+        total = len(results)
+
+        st.markdown(f'<p class="eval-score">{correct_count}/{total}</p>', unsafe_allow_html=True)
+
+        by_cat = {}
+        for r in results:
+            by_cat.setdefault(r["category"], []).append(r["correct"])
+
+        cols = st.columns(len(by_cat))
+        for col, (cat, vals) in zip(cols, by_cat.items()):
+            with col:
+                st.markdown(f'<p style="font-family:\'DM Mono\',monospace;font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.1em;">{cat}</p>', unsafe_allow_html=True)
+                st.markdown(f'<p style="font-family:\'DM Mono\',monospace;font-size:20px;color:#c8b88a;">{sum(vals)}/{len(vals)}</p>', unsafe_allow_html=True)
+
         st.markdown('<hr class="divider">', unsafe_allow_html=True)
+
+        for r in results:
+            css_class = "eval-pass" if r["correct"] else "eval-fail"
+            mark = "✓" if r["correct"] else "✗"
+            st.markdown(f'''
+                <div class="{css_class}">
+                    <p class="eval-question"><span class="category-badge">{r["category"]}</span>Q{r["id"]} — {r["question"]}</p>
+                    <p class="eval-answer">{mark} {r["reasoning"]}</p>
+                    <p style="font-family:\'DM Mono\',monospace;font-size:11px;color:#444;margin-top:0.5rem;border-top:1px solid #2a2a2a;padding-top:0.5rem;">{r["actual"][:200]}...</p>
+                </div>
+            ''', unsafe_allow_html=True)
