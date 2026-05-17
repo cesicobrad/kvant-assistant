@@ -225,7 +225,8 @@ with st.sidebar:
     for s in suggestions:
         if st.button(s, key=f"sug_{s[:20]}", use_container_width=True):
             st.session_state.pending_query = s
-            st.session_state.active_tab = "chat"
+            st.session_state.history = []
+            st.rerun()
 
     st.markdown('<hr class="divider">', unsafe_allow_html=True)
     st.markdown('<p class="kvant-header">Corpus</p>', unsafe_allow_html=True)
@@ -244,8 +245,6 @@ if "history" not in st.session_state:
     st.session_state.history = []
 if "pending_query" not in st.session_state:
     st.session_state.pending_query = ""
-if "active_tab" not in st.session_state:
-    st.session_state.active_tab = "chat"
 if "eval_results" not in st.session_state:
     st.session_state.eval_results = None
 
@@ -258,7 +257,7 @@ with tab_chat:
     with st.form("query_form", clear_on_submit=True):
         col1, col2 = st.columns([5, 1])
         with col1:
-            default_val = st.session_state.pending_query
+            default_val = st.session_state.get("pending_query", "")
             query = st.text_input(
                 "question",
                 value=default_val,
@@ -273,15 +272,23 @@ with tab_chat:
         with st.spinner("Searching..."):
             from app import answer_question
             answer, docs = answer_question(query, vector_store, llm, prompt, verbose=False)
-
         st.session_state.history.insert(0, {
             "query": query,
             "answer": answer,
             "docs": docs
         })
 
-    if st.session_state.pending_query and not submitted:
-        st.rerun()
+    elif st.session_state.get("pending_query") and system_ok:
+        q = st.session_state.pending_query
+        st.session_state.pending_query = ""
+        with st.spinner("Searching..."):
+            from app import answer_question
+            answer, docs = answer_question(q, vector_store, llm, prompt, verbose=False)
+        st.session_state.history.insert(0, {
+            "query": q,
+            "answer": answer,
+            "docs": docs
+        })
 
     for i, item in enumerate(st.session_state.history):
         st.markdown(f'<p style="font-size:13px;color:#555;font-family:\'DM Mono\',monospace;margin-bottom:0.25rem;">Q — {item["query"]}</p>', unsafe_allow_html=True)
@@ -307,7 +314,7 @@ with tab_eval:
     st.markdown('<p style="font-size:14px;color:#555;margin-bottom:2rem;">15 questions across 4 categories. LLM-as-judge scoring.</p>', unsafe_allow_html=True)
 
     if st.button("Run all 15 questions →", use_container_width=False):
-        import json
+        import json, re
         from pathlib import Path
         from app import answer_question
 
@@ -352,10 +359,9 @@ Respond with ONLY this JSON on one line:
 
             try:
                 judgment_raw = llm.invoke(judge_input)
-                import re, json as j
                 match = re.search(r'\{[^{}]*"correct"\s*:\s*(true|false)[^{}]*\}', judgment_raw, re.DOTALL)
                 if match:
-                    judgment = j.loads(match.group(0))
+                    judgment = json.loads(match.group(0))
                 else:
                     judgment = {"correct": False, "reasoning": judgment_raw[:120]}
             except Exception as e:
