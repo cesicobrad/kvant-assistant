@@ -27,9 +27,9 @@ Classic RAG, fully local — no external APIs, no cloud, no ongoing costs:
 
 - **Embeddings:** `paraphrase-multilingual-MiniLM-L12-v2` — handles Slovenian and English, runs on GPU
 - **Vector store:** Qdrant (local embedded mode)
-- **Retrieval:** dense cosine similarity, top-5 chunks
-- **LLM:** Mistral 7B via Ollama (local)
-- **Eval:** LLM-as-judge, 15 questions across 4 categories — 14/15
+- **Retrieval:** hybrid: dense cosine similarity plus BM25 keyword search, merged with reciprocal rank fusion, top-5 chunks
+- **LLM:** Qwen 2.5 14B via Ollama (local), temperature 0 so answers are repeatable
+- **Eval:** LLM-as-judge, 15 questions across 4 categories — 14/15 on each of three runs
 
 Architectural rationale and tradeoffs are in `REPORT.md`.
 
@@ -37,12 +37,12 @@ Architectural rationale and tradeoffs are in `REPORT.md`.
 
 - Python 3.10+
 - [Ollama](https://ollama.com) installed and running
-- Mistral model pulled
+- Qwen 2.5 14B pulled (about 9 GB; runs on a 12 GB GPU)
 
 ## Setup
 
 **1. Install Ollama and pull the model:**
-ollama pull mistral
+ollama pull qwen2.5:14b
 
 **2. Clone the repo and create a virtual environment:**
 git clone https://github.com/cesicobrad/kvant-assistant
@@ -87,9 +87,28 @@ python eval.py          # run the evaluation suite
 | Unanswerable  | 2/2       |
 | **Overall**   | **14/15** |
 
-The one failure (Q12) is a retrieval precision issue: the corpus
-contains two Mercator documents with different LLM references, and the
-system pulled the wrong one. Documented honestly in `REPORT.md`.
+Same score on three separate runs, with the same single miss. Q12 asks
+which LLM the Mercator Polica system uses. The answer is in a table in
+`doc_003.pdf`, but the passage that holds it doesn't make the top five,
+so the assistant says it doesn't know rather than guessing. I left it
+failing instead of tuning settings to this one question.
+
+### Update, November 2026
+
+The first version (Mistral 7B, dense search only) reported 14/15, but
+re-running it gave 14, 11 and 12: the model answered slightly
+differently each time, and it also graded itself. Three changes made
+the result stable:
+
+- JSON documents are indexed from their `content` field instead of as
+  raw JSON, so their text is chunked properly.
+- Hybrid retrieval: BM25 keyword search catches exact names and figures
+  ("Mercator Polica", "Phase 1") that embeddings blur together.
+- Qwen 2.5 14B at temperature 0 for answering and judging.
+
+With Mistral 7B, the same retrieval changes scored 11–13, so the bigger
+model is what made the difference. Set `KVANT_MODEL=mistral` to
+compare on smaller hardware.
 
 ## Suggested questions to try
 What vector database does Kvant use in production?

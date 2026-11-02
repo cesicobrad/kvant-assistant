@@ -230,7 +230,7 @@ with st.sidebar:
 
     st.markdown('<hr class="divider">', unsafe_allow_html=True)
     st.markdown('<p class="kvant-header">Corpus</p>', unsafe_allow_html=True)
-    st.markdown('<p style="font-size:12px;color:#555;font-family:\'DM Mono\',monospace;">30 documents<br>Qdrant · Mistral · MiniLM</p>', unsafe_allow_html=True)
+    st.markdown('<p style="font-size:12px;color:#555;font-family:\'DM Mono\',monospace;">30 documents<br>Qdrant · Qwen 2.5 · MiniLM</p>', unsafe_allow_html=True)
 
     if st.button("Re-ingest documents", use_container_width=True):
         import subprocess

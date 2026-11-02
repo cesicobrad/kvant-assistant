@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 from langchain_core.documents import Document
@@ -48,6 +49,17 @@ def main():
             except Exception as e:
                 print(f"  Skipping {filepath.name}: {e}")
                 continue
+        elif filepath.suffix.lower() == ".json":
+            # Exported documents keep their text in a "content" field. Indexing the raw
+            # JSON would leave escaped line breaks in the text and mix in field names.
+            try:
+                data = json.loads(filepath.read_text(encoding="utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as e:
+                print(f"  Skipping {filepath.name}: {e}")
+                continue
+            text = data.get("content", "") if isinstance(data, dict) else ""
+            if not text:
+                text = json.dumps(data, ensure_ascii=False, indent=1)
         else:
             try:
                 text = filepath.read_text(encoding="utf-8")

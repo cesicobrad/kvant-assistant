@@ -1,3 +1,5 @@
+import os
+import re
 import sys
 import warnings
 warnings.filterwarnings("ignore")
@@ -11,14 +13,19 @@ try:
     except ImportError:
         from langchain_community.llms import Ollama
     from langchain_core.prompts import ChatPromptTemplate
+    from langchain_core.documents import Document
+    from rank_bm25 import BM25Okapi
 except ImportError as e:
     print(f"[!] Missing package: {e}")
     sys.exit(1)
 
 COLLECTION_NAME = "kvant_knowledge_base"
 EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-LLM_MODEL = "mistral"
+LLM_MODEL = os.environ.get("KVANT_MODEL", "qwen2.5:14b")
+TEMPERATURE = float(os.environ.get("KVANT_TEMPERATURE", "0"))  # 0: the same question gets the same answer
 TOP_K = 5
+CANDIDATES = 10  # per retriever, before fusion
+RRF_K = 60
 
 SYSTEM_PROMPT = """You are an internal AI assistant for Kvant Consulting. Answer ONLY using the provided context below.
 
@@ -32,19 +39,61 @@ STRICT RULES:
 Context:
 {context}"""
 
+def tokenize(text):
+    return re.findall(r"\w+", text.lower())
+
+class HybridRetriever:
+    """Dense (embeddings) + keyword (BM25) search, merged with reciprocal rank fusion.
+
+    Dense search finds passages with similar meaning; BM25 catches exact names and
+    figures ("Mercator Polica", "Phase 1") that embeddings can blur together.
+    """
+
+    def __init__(self, client, vector_store):
+        self.vector_store = vector_store
+        self.docs = []
+        offset = None
+        while True:
+            points, offset = client.scroll(COLLECTION_NAME, limit=256, offset=offset, with_payload=True, with_vectors=False)
+            for p in points:
+                payload = p.payload or {}
+                self.docs.append(Document(page_content=payload.get("page_content", ""), metadata=payload.get("metadata", {}) or {}))
+            if offset is None:
+                break
+        self.bm25 = BM25Okapi([tokenize(d.page_content) for d in self.docs])
+
+    @staticmethod
+    def _key(doc):
+        return (doc.metadata.get("source"), doc.metadata.get("chunk_index"))
+
+    def search(self, query, k=TOP_K):
+        dense = self.vector_store.similarity_search(query, k=CANDIDATES)
+        scores = self.bm25.get_scores(tokenize(query))
+        top = sorted(range(len(self.docs)), key=lambda i: scores[i], reverse=True)[:CANDIDATES]
+        keyword = [self.docs[i] for i in top if scores[i] > 0]
+        fused, by_key = {}, {}
+        for ranking in (dense, keyword):
+            for rank, doc in enumerate(ranking):
+                key = self._key(doc)
+                by_key.setdefault(key, doc)
+                fused[key] = fused.get(key, 0.0) + 1.0 / (RRF_K + rank + 1)
+        best = sorted(fused, key=fused.get, reverse=True)[:k]
+        return [by_key[key] for key in best]
+
 def build_rag():
     embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
     client = QdrantClient(path="./local_qdrant")
     vector_store = Qdrant(client=client, collection_name=COLLECTION_NAME, embedding=embeddings)
-    llm = Ollama(model=LLM_MODEL)
+    retriever = HybridRetriever(client, vector_store)
+    llm = Ollama(model=LLM_MODEL, temperature=TEMPERATURE)
     prompt = ChatPromptTemplate.from_messages([
         ("system", SYSTEM_PROMPT),
         ("human", "{input}"),
     ])
-    return vector_store, llm, prompt
+    return retriever, llm, prompt
 
 def answer_question(question, vector_store, llm, prompt, k=TOP_K, verbose=True):
-    docs = vector_store.similarity_search(question, k=k)
+    docs = vector_store.search(question, k=k)
     context_text = ""
     for i, doc in enumerate(docs):
         src = doc.metadata.get("source", "?")

@@ -9,3 +9,5 @@ sentence-transformers
 qdrant-client
 pypdf
 streamlit
+rank-bm25
+psutil
