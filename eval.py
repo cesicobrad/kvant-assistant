@@ -6,8 +6,11 @@ warnings.filterwarnings("ignore")
 
 from app import build_rag, answer_question
 
-QUESTIONS_FILE = "eval_questions.json"
-RESULTS_FILE = "eval_results.json"
+import sys
+
+# Usage: python eval.py [questions.json] [results.json]
+QUESTIONS_FILE = sys.argv[1] if len(sys.argv) > 1 else "eval_questions.json"
+RESULTS_FILE = sys.argv[2] if len(sys.argv) > 2 else "eval_results.json"
 
 JUDGE_PROMPT = """You are evaluating a RAG system answer. Be generous — partial credit counts.
 

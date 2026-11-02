@@ -1,0 +1,68 @@
+[
+  {
+    "id": 101,
+    "category": "simple",
+    "question": "How long did the NLB Legal Assistant outage in September 2024 last?",
+    "expected": "6 hours 14 minutes (09:17 to 15:31 CEST on September 4, 2024)"
+  },
+  {
+    "id": 102,
+    "category": "simple",
+    "question": "How many invoices per month does Studio Moderna's finance team enter manually?",
+    "expected": "About 2,800 invoices per month"
+  },
+  {
+    "id": 103,
+    "category": "simple",
+    "question": "What handling time per invoice did the Studio Moderna proposal target?",
+    "expected": "Under 90 seconds per invoice, down from about 4.5 minutes"
+  },
+  {
+    "id": 104,
+    "category": "simple",
+    "question": "What was the total value of Kvant's MLOps proposal to Iskratel, and what was Phase 1 priced at?",
+    "expected": "€87,000 in total across three phases; Phase 1 was €32,000"
+  },
+  {
+    "id": 105,
+    "category": "simple",
+    "question": "Which vector database did Kvant adopt as its default after the 2023 evaluation?",
+    "expected": "Qdrant"
+  },
+  {
+    "id": 106,
+    "category": "multi_hop",
+    "question": "On which projects did Kvant use LangChain agents?",
+    "expected": "Pipistrel's maintenance documentation assistant and an internal prototype for Krka's regulatory query tool"
+  },
+  {
+    "id": 107,
+    "category": "multi_hop",
+    "question": "What caused the NLB Legal Assistant outage?",
+    "expected": "An out-of-memory crash on the Hetzner CX31 instance, caused by a runaway embedding reindex job, no memory limits on the Docker containers and no alerting"
+  },
+  {
+    "id": 108,
+    "category": "simple",
+    "question": "Kdaj je prišlo do izpada sistema NLB Legal Assistant?",
+    "expected": "4. septembra 2024 (September 4, 2024)"
+  },
+  {
+    "id": 109,
+    "category": "simple",
+    "question": "Which embedding model struggled with Slovenian pharmaceutical terms in the Krka pilot?",
+    "expected": "text-embedding-3-large"
+  },
+  {
+    "id": 110,
+    "category": "unanswerable",
+    "question": "Who is the CEO of Textron Aviation?",
+    "expected": "Not in the documents; the assistant should say it doesn't know"
+  },
+  {
+    "id": 111,
+    "category": "unanswerable",
+    "question": "What was Pipistrel's annual revenue in 2024?",
+    "expected": "Not in the documents; the assistant should say it doesn't know"
+  }
+]

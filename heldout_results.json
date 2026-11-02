@@ -1,0 +1,171 @@
+[
+  {
+    "id": 101,
+    "category": "simple",
+    "question": "How long did the NLB Legal Assistant outage in September 2024 last?",
+    "expected": "6 hours 14 minutes (09:17 to 15:31 CEST on September 4, 2024)",
+    "actual": "The NLB Legal Assistant went fully offline for 6 hours and 14 minutes on September 4, 2024. According to Source 1 [doc_014.md, chunk 1].",
+    "sources_used": [
+      "doc_007.json",
+      "doc_014.md",
+      "doc_016.md",
+      "doc_002.pdf"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer matches the expected duration and date of the NLB Legal Assistant outage."
+  },
+  {
+    "id": 102,
+    "category": "simple",
+    "question": "How many invoices per month does Studio Moderna's finance team enter manually?",
+    "expected": "About 2,800 invoices per month",
+    "actual": "According to Source 1, Studio Moderna's finance team manually enters data from approximately 2,800 invoices per month.",
+    "sources_used": [
+      "doc_007.json",
+      "doc_010.md",
+      "doc_002.pdf",
+      "doc_018.md",
+      "doc_028.md"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer correctly includes the main fact that Studio Moderna's finance team manually enters approximately 2800 invoices per month."
+  },
+  {
+    "id": 103,
+    "category": "simple",
+    "question": "What handling time per invoice did the Studio Moderna proposal target?",
+    "expected": "Under 90 seconds per invoice, down from about 4.5 minutes",
+    "actual": "Target: reduce average handling time per invoice from 4.5 minutes to under 90 seconds. According to Source 1 [doc_010.md, chunk 8].",
+    "sources_used": [
+      "doc_030.md",
+      "doc_007.json",
+      "doc_010.md",
+      "doc_013.md"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer correctly states the target handling time reduction from 4.5 minutes to under 90 seconds as expected."
+  },
+  {
+    "id": 104,
+    "category": "simple",
+    "question": "What was the total value of Kvant's MLOps proposal to Iskratel, and what was Phase 1 priced at?",
+    "expected": "€87,000 in total across three phases; Phase 1 was €32,000",
+    "actual": "According to Source 2 [doc_030.md, chunk 1], the total value of Kvant's MLOps proposal to Iskratel is €87,000 across three phases. Phase 1 was priced at €32,000.",
+    "sources_used": [
+      "doc_030.md",
+      "doc_027.md",
+      "doc_013.md",
+      "doc_004.pdf"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer correctly states both the total value and Phase 1 price as specified in the expected answer."
+  },
+  {
+    "id": 105,
+    "category": "simple",
+    "question": "Which vector database did Kvant adopt as its default after the 2023 evaluation?",
+    "expected": "Qdrant",
+    "actual": "According to Source 1 [doc_017.md, chunk 1], Qdrant was adopted as the default vector database.",
+    "sources_used": [
+      "doc_009.json",
+      "doc_017.md",
+      "doc_002.pdf",
+      "doc_004.pdf"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer correctly states that Qdrant was adopted as the default vector database according to the provided source."
+  },
+  {
+    "id": 106,
+    "category": "multi_hop",
+    "question": "On which projects did Kvant use LangChain agents?",
+    "expected": "Pipistrel's maintenance documentation assistant and an internal prototype for Krka's regulatory query tool",
+    "actual": "Kvant used LangChain agents on two projects: Pipistrel's maintenance doc assistant and an internal prototype for Krka's regulatory query tool. According to Source 1, these were the cases where issues with LangChain agents were encountered.",
+    "sources_used": [
+      "doc_024.md",
+      "doc_022.md",
+      "doc_020.md",
+      "doc_027.md",
+      "doc_029.md"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer correctly includes both projects mentioned in the expected answer."
+  },
+  {
+    "id": 107,
+    "category": "multi_hop",
+    "question": "What caused the NLB Legal Assistant outage?",
+    "expected": "An out-of-memory crash on the Hetzner CX31 instance, caused by a runaway embedding reindex job, no memory limits on the Docker containers and no alerting",
+    "actual": "The NLB Legal Assistant went fully offline due to an out-of-memory (OOM) crash on the Hetzner CX31 instance running the Qdrant vector database and FastAPI backend. The root cause was a combination of a runaway embedding reindex job triggered manually by Nika, absence of memory limits on Docker containers, and no alerting configured. According to Source 1.",
+    "sources_used": [
+      "doc_007.json",
+      "doc_001.pdf",
+      "doc_014.md",
+      "doc_016.md"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer correctly identifies all key factors including the OOM crash, Hetzner CX31 instance, runaway embedding reindex job, lack of memory limits and alerting."
+  },
+  {
+    "id": 108,
+    "category": "simple",
+    "question": "Kdaj je prišlo do izpada sistema NLB Legal Assistant?",
+    "expected": "4. septembra 2024 (September 4, 2024)",
+    "actual": "Izpada sistema NLB Legal Assistant je prišlo do dneva 4. septembra 2024. [Source 3]",
+    "sources_used": [
+      "doc_007.json",
+      "doc_001.pdf",
+      "doc_014.md",
+      "doc_002.pdf"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer provides the exact date mentioned in the expected answer, confirming it is correct."
+  },
+  {
+    "id": 109,
+    "category": "simple",
+    "question": "Which embedding model struggled with Slovenian pharmaceutical terms in the Krka pilot?",
+    "expected": "text-embedding-3-large",
+    "actual": "According to Source 1, the `text-embedding-3-large` embedding model struggles with Slovenian pharmaceutical terms in the Krka pilot.",
+    "sources_used": [
+      "doc_007.json",
+      "doc_025.md",
+      "doc_027.md",
+      "doc_020.md"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer correctly identifies that the text-embedding-3-large model struggles with Slovenian pharmaceutical terms in the Krka pilot."
+  },
+  {
+    "id": 110,
+    "category": "unanswerable",
+    "question": "Who is the CEO of Textron Aviation?",
+    "expected": "Not in the documents; the assistant should say it doesn't know",
+    "actual": "I don't know based on the internal documents.",
+    "sources_used": [
+      "doc_027.md",
+      "doc_004.pdf",
+      "doc_003.pdf",
+      "doc_012.md",
+      "doc_026.md"
+    ],
+    "correct": true,
+    "reasoning": "The response accurately indicates that the information is not available in the documents."
+  },
+  {
+    "id": 111,
+    "category": "unanswerable",
+    "question": "What was Pipistrel's annual revenue in 2024?",
+    "expected": "Not in the documents; the assistant should say it doesn't know",
+    "actual": "I don't know based on the internal documents.",
+    "sources_used": [
+      "doc_024.md",
+      "doc_010.md",
+      "doc_028.md",
+      "doc_026.md",
+      "doc_005.pdf"
+    ],
+    "correct": true,
+    "reasoning": "The actual answer correctly states that it doesn't know based on the internal documents."
+  }
+]

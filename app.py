@@ -23,9 +23,10 @@ COLLECTION_NAME = "kvant_knowledge_base"
 EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 LLM_MODEL = os.environ.get("KVANT_MODEL", "qwen2.5:14b")
 TEMPERATURE = float(os.environ.get("KVANT_TEMPERATURE", "0"))  # 0: the same question gets the same answer
-TOP_K = 5
-CANDIDATES = 10  # per retriever, before fusion
+TOP_K = 6
+CANDIDATES = 20  # per retriever, before fusion
 RRF_K = 60
+MAX_PER_SOURCE = 2  # keep room for other documents; questions often need more than one
 
 SYSTEM_PROMPT = """You are an internal AI assistant for Kvant Consulting. Answer ONLY using the provided context below.
 
@@ -39,8 +40,12 @@ STRICT RULES:
 Context:
 {context}"""
 
+# Common English and Slovenian words that say nothing about which document matches.
+STOPWORDS = set("""a an and are as at be by did do does for from has have how in is it its of on or that the this to
+was were what when where which who why will with je in na za da se so ali kaj kdo kje kako""".split())
+
 def tokenize(text):
-    return re.findall(r"\w+", text.lower())
+    return [t for t in re.findall(r"\w+", text.lower()) if t not in STOPWORDS]
 
 class HybridRetriever:
     """Dense (embeddings) + keyword (BM25) search, merged with reciprocal rank fusion.
@@ -77,8 +82,15 @@ class HybridRetriever:
                 key = self._key(doc)
                 by_key.setdefault(key, doc)
                 fused[key] = fused.get(key, 0.0) + 1.0 / (RRF_K + rank + 1)
-        best = sorted(fused, key=fused.get, reverse=True)[:k]
-        return [by_key[key] for key in best]
+        picked, per_source = [], {}
+        for key in sorted(fused, key=fused.get, reverse=True):
+            if per_source.get(key[0], 0) >= MAX_PER_SOURCE:
+                continue
+            per_source[key[0]] = per_source.get(key[0], 0) + 1
+            picked.append(by_key[key])
+            if len(picked) == k:
+                break
+        return picked
 
 def build_rag():
     embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)

@@ -1,4 +1,6 @@
 import json
+import shutil
+import uuid
 import os
 from pathlib import Path
 from langchain_core.documents import Document
@@ -13,6 +15,14 @@ import psutil
 COLLECTION_NAME = "kvant_knowledge_base"
 EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 VECTOR_SIZE = 384
+
+def document_title(text, fallback):
+    """First non-empty line of the document, without Markdown markers."""
+    for line in text.splitlines():
+        line = line.strip().lstrip("#").strip().strip("*").strip()
+        if line:
+            return line[:150]
+    return fallback
 
 def main():
     print("\n--- KVANT INGEST V5 ---")
@@ -71,7 +81,7 @@ def main():
 
         documents.append(Document(
             page_content=text,
-            metadata={"source": filepath.name}
+            metadata={"source": filepath.name, "title": document_title(text, filepath.stem)}
         ))
 
     print(f"Loaded {len(documents)} documents.")
@@ -90,17 +100,19 @@ def main():
         src = c.metadata["source"]
         counts[src] = counts.get(src, 0) + 1
         c.metadata["chunk_index"] = counts[src]
+        # A chunk from the middle of a report rarely repeats the report's name, so
+        # search can't tell which project it belongs to. Prefix the document title.
+        c.page_content = f"[{c.metadata['title']}]\n{c.page_content}"
     print(f"Created {len(chunks)} chunks.")
 
     print("Loading embeddings (GPU if available)...")
     embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
 
     print("Initializing Qdrant...")
+    # In local mode, delete_collection left old points in storage.sqlite, so every
+    # re-ingest added another copy of each chunk. Start from an empty folder instead.
+    shutil.rmtree("./local_qdrant", ignore_errors=True)
     client = QdrantClient(path="./local_qdrant")
-
-    existing = [c.name for c in client.get_collections().collections]
-    if COLLECTION_NAME in existing:
-        client.delete_collection(COLLECTION_NAME)
     client.create_collection(
         collection_name=COLLECTION_NAME,
         vectors_config=models.VectorParams(size=VECTOR_SIZE, distance=models.Distance.COSINE),
@@ -112,8 +124,13 @@ def main():
         embedding=embeddings,
     )
     print("Indexing chunks...")
-    vector_store.add_documents(chunks)
-    print(f"Done. {len(chunks)} chunks indexed in '{COLLECTION_NAME}'.")
+    # Stable IDs: re-running ingest replaces chunks instead of adding duplicates.
+    ids = [str(uuid.uuid5(uuid.NAMESPACE_URL, f"{c.metadata['source']}#{c.metadata['chunk_index']}")) for c in chunks]
+    vector_store.add_documents(chunks, ids=ids)
+    stored = client.count(COLLECTION_NAME).count
+    print(f"Done. {stored} chunks indexed in '{COLLECTION_NAME}'.")
+    if stored != len(chunks):
+        print(f"⚠ Expected {len(chunks)} chunks in the index, found {stored}.")
 
 if __name__ == "__main__":
     main()
